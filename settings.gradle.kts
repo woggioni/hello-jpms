@@ -9,5 +9,6 @@
 
 rootProject.name = "hello-jpms"
 include("hello")
+include("hello-kotlin")
 include("A")
 include("B")
