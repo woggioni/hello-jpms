@@ -6,11 +6,27 @@ package net.woggioni.hello.jpms;
 import net.woggioni.hello.jpms.a.A;
 import net.woggioni.hello.jpms.a.P2d;
 
+import java.lang.module.ModuleDescriptor;
+import java.util.Optional;
+
 public class Library {
     public static void main(String[] args) {
         P2d p1 = new P2d(1,2);
         P2d p2 = new P2d(3,4);
         System.out.println(A.distance(p1, p2));
         System.out.printf("Java version: %s\n", System.getProperty("java.version"));
+        Module m = Library.class.getModule();
+        ModuleLayer layer = m.getLayer();
+        System.out.printf("Module %s %s\n", m.getDescriptor().name(), m.getDescriptor().version().map(ModuleDescriptor.Version::toString).orElse(""));
+        Optional.ofNullable(m.getDescriptor())
+                .map(mod -> mod.requires())
+                .ifPresent(mod -> mod.forEach(dependency -> {
+            System.out.printf("Dependency %s %s\n",
+                    dependency.name(),
+                    dependency.compiledVersion().map(ModuleDescriptor.Version::toString).orElse(""));
+//            layer.findModule()
+        }));
+        m.getLayer();
+        System.out.println(p1.toString());
     }
 }

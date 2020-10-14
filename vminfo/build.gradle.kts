@@ -6,10 +6,8 @@ plugins {
 }
 dependencies {
     implementation(group="org.jetbrains.kotlin", name="kotlin-stdlib-jdk8", version="1.4.0")
-    implementation(project(":A"))
 }
 
 application {
-    mainClass.set("net.woggioni.hello.jpms.Hello")
+    mainClass.set("net.woggioni.vminfo.VMInfoKt")
 }
-

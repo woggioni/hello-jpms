@@ -3,5 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":B"))
+    api(project(":B"))
+    api(project(":serialization"))
 }
