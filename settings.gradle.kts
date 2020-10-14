@@ -7,8 +7,12 @@
  * in the user manual at https://docs.gradle.org/6.6/userguide/multi_project_builds.html
  */
 
-rootProject.name = "hello-jpms"
-include("hello")
-include("hello-kotlin")
-include("A")
-include("B")
+rootProject.name = "jpms-loader"
+include("modules:A")
+include("modules:B")
+include("modules:serialization")
+include("modules:json-serializer")
+include("modules:example-bundle")
+include("modules:example-bundle2")
+include("zloader")
+
