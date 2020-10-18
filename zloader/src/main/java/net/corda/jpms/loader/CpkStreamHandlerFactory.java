@@ -68,7 +68,7 @@ class CpkURLConnection extends URLConnection {
 
 class CpkURLStreamHandler extends URLStreamHandler {
     @Override
-    protected URLConnection openConnection(URL url) throws IOException {
+    protected URLConnection openConnection(URL url) {
         return new CpkURLConnection(url);
     }
 }
@@ -94,7 +94,6 @@ public class CpkStreamHandlerFactory implements URLStreamHandlerFactory {
     static {
         CpkStreamHandlerFactory factory = getInstance();
         factory.registerHandler("cpk", new CpkURLStreamHandler());
-        URL.setURLStreamHandlerFactory(getInstance());
     }
 
     private final Map<String, URLStreamHandler> protocolMap;

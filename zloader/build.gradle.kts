@@ -2,8 +2,6 @@ plugins {
     application
 }
 
-println(project.name)
-
 dependencies {
     implementation(group = "com.beust", name = "jcommander", version = "1.80")
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.11.3")
@@ -18,7 +16,7 @@ application {
 
 tasks.create("go", JavaExec::class.java) {
     val arguments = ArrayList<String>()
-    arrayOf(":modules:example-bundle", ":modules:json-serializer", ":modules:example-bundle2").forEach {
+    arrayOf(":modules:example-bundle", ":modules:json-serializer", ":modules:A").forEach {
         val cpkTask = tasks.getByPath("$it:cpk") as Cpk
         dependsOn(cpkTask)
         for (file in cpkTask.outputs.files) {
@@ -29,6 +27,6 @@ tasks.create("go", JavaExec::class.java) {
     args = arguments
     dependsOn("compileJava")
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("net.corda.jpms.loader.Loader")
+    mainClass.set("net.corda.jpms.loader.ZLoader")
     mainModule.set("net.corda.jpms.loader")
 }

@@ -38,7 +38,8 @@ data class CpkMetaData(
     val version : String,
     val mainClass : String?,
     val mainModule : String?,
-    val requirements : Iterable<Pair<String, String>>
+    val requirements : List<Pair<String, String>>,
+    val exports : List<String>
 ) : java.io.Serializable {
     class Builder {
         private var name : String? = null
@@ -46,6 +47,7 @@ data class CpkMetaData(
         private var mainClass : String? = null
         private var mainModule : String? = null
         private var requirements : ArrayList<Pair<String, String>> = ArrayList()
+        private var exports : ArrayList<String> = ArrayList()
 
         fun name(name : String) = let {
             this.name = name
@@ -67,6 +69,20 @@ data class CpkMetaData(
             this
         }
 
+        fun exports(export: String) = let {
+            exports.add(export)
+            this
+        }
+
+        fun exports(exports: Iterable<String>) = let {
+            this.exports = ArrayList<String>().apply {
+                for(export in exports) {
+                    add(export)
+                }
+            }
+            this
+        }
+
         fun requirements(requirements: Iterable<Pair<String, String>>) = let {
             this.requirements = ArrayList<Pair<String, String>>().apply {
                 for(requirement in requirements) {
@@ -84,7 +100,13 @@ data class CpkMetaData(
         fun build() = let {
             require(name != null) {"'name' must not be null"}
             require(version != null) {"'version' must not be null"}
-            CpkMetaData(name=name!!, version = version!!, requirements = requirements, mainClass = mainClass, mainModule = mainModule)
+            CpkMetaData(
+                    name=name!!,
+                    version = version!!,
+                    requirements = requirements,
+                    exports = exports,
+                    mainClass = mainClass,
+                    mainModule = mainModule)
         }
     }
 
@@ -107,13 +129,21 @@ open class Cpk : Jar () {
                 jgen.writeObjectField(CpkMetaData::name.name, value.name)
                 jgen.writeObjectField(CpkMetaData::version.name, value.version)
                 value.mainClass?.let { jgen.writeObjectField("main-class", it) }
-                value.mainModule.let { jgen.writeObjectField("main-module", it) }
-                jgen.writeObjectFieldStart(CpkMetaData::requirements.name)
-                for(requirement in value.requirements) {
-                    jgen.writeObjectField(requirement.first, requirement.second)
+                value.mainModule?.let { jgen.writeObjectField("main-module", it) }
+                if(value.exports.isNotEmpty()) {
+                    jgen.writeArrayFieldStart(CpkMetaData::exports.name)
+                    for(export in value.exports) {
+                        jgen.writeString(export)
+                    }
+                    jgen.writeEndArray()
                 }
-                jgen.writeEndObject()
-                jgen.writeEndObject()
+                if(value.requirements.isNotEmpty()) {
+                    jgen.writeObjectFieldStart(CpkMetaData::requirements.name)
+                    for (requirement in value.requirements) {
+                        jgen.writeObjectField(requirement.first, requirement.second)
+                    }
+                    jgen.writeEndObject()
+                }
             }
         }
 
@@ -147,6 +177,7 @@ open class Cpk : Jar () {
     private var metadata : Property<CpkMetaData>
 
     init {
+        entryCompression = ZipEntryCompression.STORED
         val jarTask = project.tasks.named("jar", Jar::class).get()
         dependsOn(jarTask)
         archiveExtension.set("cpk")

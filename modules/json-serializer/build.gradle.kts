@@ -11,5 +11,7 @@ task<Cpk>("cpk") {
     metadata {
         name("serialization")
         version("1.0")
+        exports("serialization")
+        exports("json.serializer")
     }
 }
