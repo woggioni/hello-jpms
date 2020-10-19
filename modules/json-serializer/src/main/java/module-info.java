@@ -1,5 +1,5 @@
-import net.woggioni.hello.jpms.serialization.Serializer;
-import net.woggioni.hello.jpms.serializer.JsonSerializer;
+import net.woggioni.jpms.loader.serialization.Serializer;
+import net.woggioni.jpms.loader.serializer.JsonSerializer;
 
 module json.serializer {
     requires static serialization;

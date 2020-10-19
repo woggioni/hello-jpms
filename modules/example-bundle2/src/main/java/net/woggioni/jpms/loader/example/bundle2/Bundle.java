@@ -4,12 +4,10 @@
 package net.woggioni.jpms.loader.example.bundle2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.woggioni.hello.jpms.a.A;
-import net.woggioni.hello.jpms.a.P2d;
+import net.woggioni.jpms.loader.a.A;
+import net.woggioni.jpms.loader.a.P2d;
 
-import java.lang.module.ModuleDescriptor;
 import java.net.URL;
-import java.util.Optional;
 
 
 public class Bundle implements Runnable {

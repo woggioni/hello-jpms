@@ -2,9 +2,9 @@ package net.woggioni.jpms.loader.example.bundle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import net.woggioni.hello.jpms.a.A;
-import net.woggioni.hello.jpms.a.ClassLoadingUtils;
-import net.woggioni.hello.jpms.a.P2d;
+import net.woggioni.jpms.loader.a.A;
+import net.woggioni.jpms.loader.a.ClassLoadingUtils;
+import net.woggioni.jpms.loader.a.P2d;
 
 public class Bundle implements Runnable {
 

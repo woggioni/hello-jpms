@@ -1,3 +1,3 @@
 module serialization {
-    exports net.woggioni.hello.jpms.serialization;
+    exports net.woggioni.jpms.loader.serialization;
 }

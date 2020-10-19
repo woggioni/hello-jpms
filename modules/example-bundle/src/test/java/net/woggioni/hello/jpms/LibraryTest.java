@@ -3,7 +3,7 @@
  */
 package net.woggioni.hello.jpms;
 
-import net.woggioni.jpms.loader.example.bundle2.Bundle;
+import net.woggioni.jpms.zloader.example.bundle2.Bundle;
 import org.junit.jupiter.api.Test;
 
 class LibraryTest {

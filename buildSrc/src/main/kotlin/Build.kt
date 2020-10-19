@@ -1,22 +1,21 @@
-import org.gradle.api.tasks.bundling.ZipEntryCompression
-import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.get
-import java.io.File
-import java.io.FileOutputStream
-
+import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.bundling.ZipEntryCompression
+import org.gradle.jvm.tasks.Jar
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.named
+import java.io.File
+import java.io.FileOutputStream
 
 
 fun org.gradle.api.artifacts.dsl.DependencyHandler.addLombok(vararg configurations : String) {
