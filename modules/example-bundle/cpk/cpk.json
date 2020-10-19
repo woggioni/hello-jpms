@@ -1,9 +1,0 @@
-{
-  "name" : "example-app",
-  "version" : "1.0",
-  "requires" : {
-    "serialization" : "1.0"
-  },
-  "main-class" : "net.woggioni.hello.jpms.example.bundle.Bundle",
-  "main-module" : "net.woggioni.hello.jpms"
-}

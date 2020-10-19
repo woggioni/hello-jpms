@@ -17,8 +17,4 @@ public class Bundle implements Runnable {
         ClassLoadingUtils.debugClass(P2d.class.getName(), getClass());
         ClassLoadingUtils.debugClass(ObjectMapper.class.getName(), getClass());
     }
-
-    public static void main(String[] argv) {
-        new Bundle().run();
-    }
 }

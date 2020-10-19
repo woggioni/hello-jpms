@@ -13,6 +13,5 @@ include("modules:B")
 include("modules:serialization")
 include("modules:json-serializer")
 include("modules:example-bundle")
-include("modules:example-bundle2")
 include("zloader")
 

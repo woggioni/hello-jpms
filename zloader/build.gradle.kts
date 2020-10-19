@@ -1,3 +1,5 @@
+import kotlin.script.experimental.jvm.util.classpathFromFQN
+
 plugins {
     application
 }
@@ -11,7 +13,6 @@ dependencies {
 
 application {
     mainClass.set("net.woggioni.jpms.loader.zloader.api.ZLoader")
-    mainModule.set("zloader")
 }
 
 // Gradle is too dumb to understand that even if jcommander doesn't ship a JPMS-friendly jar
@@ -26,6 +27,7 @@ tasks.getByName("compileJava", JavaCompile::class) {
     options.compilerArgs.add("--module-path")
     options.compilerArgs.add(classpath.asPath)
 }
+
 
 tasks.getByName("run", JavaExec::class) {
     val arguments = ArrayList<String>()
