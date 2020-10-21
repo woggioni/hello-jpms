@@ -206,11 +206,3 @@ As an example, `jdk.internal.module.ModulePath` which is the default implementat
 and contains a lot of useful and needed functionalities (like the code to list java packages available in a jar file) 
 understands jar files in terms of `java.util.jar.JarFile`, which also ties it to `java.io.File` 
 (a file in native OS filesystem, not `java.nio.file.Filesystem`). 
-
-### Loading remote module classes from private packages
-Currently only exported and open packages, as well as the packages of any service providers, 
-and the package for the main class are exposed to JPMS (`module.getDescriptor().packages()` will only return those packages)
-while the others will be part of the unnamed module of the bundle's classloader, all the bundle's modules can read 
-the unnamed module but the unnamed module cannot read any other modules, 
-this is a limitation that I'm currently still trying to overcome.
-

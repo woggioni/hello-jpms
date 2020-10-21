@@ -9,10 +9,18 @@ import java.net.URL;
 public class JsonSerializer implements Serializer {
     private ObjectMapper om = new ObjectMapper();
 
+    @SneakyThrows
     public JsonSerializer() {
-        Module m = getClass().getModule();
-        URL url = getClass().getClassLoader().getResource(ObjectMapper.class.getName().replace(".", "/") + ".class");
-        System.out.printf("Module '%s' sees ObjectMapper from '%s'\n", m.getName(),  url);
+        String className = ObjectMapper.class.getName();
+        Module m = JsonSerializer.class.getModule();
+        Class<?> cls = Class.forName(className, false, JsonSerializer.class.getClassLoader());
+        ClassLoader loader = cls.getClassLoader();
+        URL url = loader.getResource(className.replace('.', '/') + ".class");
+        if(url == null) {
+            System.out.printf("Class '%s' of module '%s' cannot see class '%s'\n", JsonSerializer.class.getName(), m.getName(), className);
+        } else {
+            System.out.printf("Class '%s' of module '%s' sees '%s' from '%s'\n", JsonSerializer.class.getName(), m.getName(),  className, url);
+        }
     }
 
     @Override
