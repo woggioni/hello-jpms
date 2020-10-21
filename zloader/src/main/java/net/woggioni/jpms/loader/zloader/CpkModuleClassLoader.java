@@ -152,18 +152,23 @@ public class CpkModuleClassLoader extends SecureClassLoader {
         synchronized (getClassLoadingLock(className)) {
             Class<?> result = findLoadedClass(className);
             if (result == null) {
-                ModuleData moduleData = packageMap.get(packageName(className));
-                if(moduleData == null) {
-                    ClassLoader parent = getParent();
-                    if(parent == null) {
-                        result = super.loadClass(className, resolve);
-                    } else {
-                        result = parent.loadClass(className);
-                    }
-                } else if(Objects.equals(moduleName, moduleData.name)) {
-                    result = findClass(className);
+                ClassLoader parent = getParent();
+                if(parent == null) {
+                    result = super.loadClass(className, resolve);
                 } else {
-                    result = moduleData.classLoader.loadClass(className);
+                    result = parent.loadClass(className);
+                }
+                if(result == null) {
+                    result = findClass(className);
+                }
+                if(result == null) {
+                    ModuleData moduleData = packageMap.get(packageName(className));
+                    if (moduleData == null) {
+                    } else if (Objects.equals(moduleName, moduleData.name)) {
+                        result = findClass(className);
+                    } else {
+                        result = moduleData.classLoader.loadClass(className);
+                    }
                 }
             }
             if (result == null)
