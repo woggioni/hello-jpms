@@ -38,8 +38,6 @@ public class CpkModuleReader implements ModuleReader {
     }
 
     @Override
-    @SneakyThrows
     public void close() {
-        jarFs.close();
     }
 }

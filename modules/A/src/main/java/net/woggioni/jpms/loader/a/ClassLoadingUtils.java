@@ -12,10 +12,9 @@ public class ClassLoadingUtils {
         ClassLoader loader = cls.getClassLoader();
         URL url = loader.getResource(className.replace('.', '/') + ".class");
         if(url == null) {
-            System.out.printf("Module '%s' cannot see class '%s'\n", m.getName(), className);
+            System.out.printf("Class '%s' of module '%s' cannot see class '%s'\n", caller.getName(), m.getName(), className);
         } else {
-            System.out.printf("Module '%s' sees '%s' from '%s'\n", m.getName(),  className, url);
+            System.out.printf("Class '%s' of module '%s' sees '%s' from '%s'\n", caller.getName(), m.getName(),  className, url);
         }
     }
-
 }

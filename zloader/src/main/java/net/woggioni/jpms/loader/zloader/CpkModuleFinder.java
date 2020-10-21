@@ -28,22 +28,19 @@ public class CpkModuleFinder implements ModuleFinder {
 
     @SneakyThrows
     public CpkModuleFinder(Path cpkFile) {
-        FileSystem fs = FileSystems.newFileSystem(cpkFile, ClassLoader.getSystemClassLoader());
+        FileSystem fs = CpkURLConnection.getFileSystem(cpkFile);
         modules = Files.list(fs.getPath("lib"))
                 .filter(path -> Files.isRegularFile(path) && path.toString().endsWith(".jar"))
                 .flatMap(new Function<Path, Stream<ModuleReference>>(){
                     @Override
                     @SneakyThrows
                     public Stream<ModuleReference> apply(Path jarFile) {
-                        FileSystem jarFs = FileSystems.newFileSystem(jarFile, ClassLoader.getSystemClassLoader());
+                        FileSystem jarFs = CpkURLConnection.getFileSystem(jarFile);
                         Path moduleInfoPath = jarFs.getPath("module-info.class");
                         if(Files.exists(moduleInfoPath)) {
-//                            JavaPackageVisitor javaPackageVisitor = new JavaPackageVisitor();
-//                            Files.walkFileTree(jarFs.getPath("."), javaPackageVisitor);
                             ModuleDescriptor md;
                             try (InputStream is = Files.newInputStream(moduleInfoPath)) {
                                 md = ModuleDescriptor.read(is);
-//                                md = ModuleDescriptor.read(is, javaPackageVisitor::getPackageNames);
                             }
                             log.info("Module '{}' requires [{}]", md.name(),
                                     md.requires().stream()

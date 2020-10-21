@@ -5,12 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.woggioni.jpms.loader.zloader.*;
+import static net.woggioni.jpms.loader.zloader.Utils.newThrowable;
 
-import java.lang.module.Configuration;
-import java.lang.module.ModuleDescriptor;
-import java.lang.module.ModuleFinder;
-import java.lang.module.ResolutionException;
+import java.lang.module.*;
 import java.lang.reflect.Constructor;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,6 +105,7 @@ public class ZLoader {
 
         Map<ModuleLayer, Bundle> layer2Bundle = new HashMap<>();
         Map<Bundle, ModuleLayer> bundle2Layer = new HashMap<>();
+        Map<ModuleLayer, Map<String, ModuleData>> packageMaps = new HashMap<>();
         ArrayList<StackElement> stack = new ArrayList<>();
         for(Bundle bundle : bundles.values()) {
             StackElement stackElement = new StackElement(bundle);
@@ -124,18 +124,6 @@ public class ZLoader {
                     stack.add(childStackElement);
                 } else {
                     ModuleLayer layer = bundle2Layer.computeIfAbsent(lastElement.bundle, key -> {
-                        CpkClassLoader cpkClassLoader = new CpkClassLoader(key.getCpkfile(), null);
-//                        List<String> rootModules = iterator2Stream(cpkClassLoader.findResources("module-info.class").asIterator())
-//                                .map(new Function<URL, String>() {
-//                                    @Override
-//                                    @SneakyThrows
-//                                    public String apply(URL url) {
-//                                        try(InputStream is = url.openStream()) {
-//                                            ModuleDescriptor descriptor = ModuleDescriptor.read(is);
-//                                            return descriptor.name();
-//                                        }
-//                                    }
-//                                }).collect(Collectors.toList());
                         List<String> roots = Stream.concat(
                                 Utils.iterable2Stream(key.getExports()),
                                 Optional.ofNullable(key.getMainModule()).stream()
@@ -148,10 +136,46 @@ public class ZLoader {
                                 ModuleFinder.of(),
                                 roots
                         );
-                        ModuleLayer.Controller controller = ModuleLayer.defineModulesWithOneLoader(cfg,
-                                parents,
-                                cpkClassLoader);
+                        ModuleLayer.Controller controller = ModuleLayer.defineModules(cfg, parents, new Function<String, ClassLoader>() {
+                            private static final String SKIP = "file://";
+                            @Override
+                            @SneakyThrows
+                            public ClassLoader apply(String moduleName) {
+                                ResolvedModule resolvedModule = cfg.findModule(moduleName).get();
+                                Optional<URI> location = resolvedModule.reference().location();
+                                URL jarUrl = location.get().toURL();
+                                String path = jarUrl.getPath();
+                                if(!path.startsWith(SKIP)) {
+                                    throw newThrowable(IllegalArgumentException.class,
+                                            "Unknown URL '%s'", jarUrl.toString());
+                                }
+                                int cursor = SKIP.length();
+                                cursor = path.indexOf('!', cursor);
+                                int firstSeparator = cursor;
+                                String cpkFilePath = path.substring(SKIP.length(), firstSeparator);
+                                String jarFilePath = path.substring(firstSeparator + 1);
+                                return new CpkModuleClassLoader(cfg, moduleName, cpkFilePath, jarFilePath, null);
+                            }
+                        });
                         ModuleLayer result = controller.layer();
+
+                        Map<String, ModuleData> currentConfigurationPackageMap = result.modules().stream()
+                                .flatMap(resolvedModule -> resolvedModule.getDescriptor().packages().stream()
+                                        .map(packageName -> new Tuple2<>(packageName, resolvedModule)))
+                                .collect(CollectionUtils.toUnmodifiableTreeMap(
+                                        t -> t._1, t -> new ModuleData(t._2.getName(),
+                                        t._2.getClassLoader())));
+                        Iterable<Map<String, ModuleData>> parentMaps = result.parents().stream()
+                                .filter(c -> c != ModuleLayer.boot())
+                                .map(packageMaps::get)
+                                .collect(Collectors.toList());
+                        Map<String, ModuleData> packageMap = new DelegatingMap<>(currentConfigurationPackageMap, parentMaps);
+                        for(Module m : result.modules()) {
+                            ((CpkModuleClassLoader) m.getClassLoader()).setPackageMap(packageMap);
+                            controller.addReads(m, m.getClassLoader().getUnnamedModule());
+                        }
+                        packageMaps.put(result, packageMap);
+
                         layer2Bundle.put(result, key);
                         for(Module module : result.modules()) {
                             for(ModuleDescriptor.Requires requirement : module.getDescriptor().requires()) {
@@ -173,7 +197,6 @@ public class ZLoader {
                                     }
                                 }
                             }
-                            controller.addReads(module, cpkClassLoader.getUnnamedModule());
                         }
                         String modules = result.modules().stream().map(Module::getDescriptor).map(ModuleDescriptor::toNameAndVersion)
                                 .reduce((s1, s2) -> s1 + ", " + s2).orElse("");

@@ -16,52 +16,40 @@ import java.util.zip.ZipInputStream;
 
 class CpkURLConnection extends URLConnection {
 
-    static final Map<Path, FileSystem> cpkFilesystems = new HashMap<>();
+    private static final Map<Path, FileSystem> fileSystemCache = Collections.synchronizedMap(new HashMap<>());
 
-    private final FileSystem fs;
-    private final String jarPath;
-    private final String className;
+    public static final boolean exists(Path jarFile, String resourceName) {
+        return Files.exists(getFileSystem(jarFile).getPath(resourceName));
+    }
 
-    protected CpkURLConnection(URL url) {
-        super(url);
-        String path = url.getPath();
-        int cursor = path.indexOf('!');
-        if (cursor < 0) throw new IllegalArgumentException(String.format("Invalid URL '%s'", url.toString()));
-        int firstSeparator = cursor;
-        cursor = path.indexOf('!', cursor + 1);
-        if (cursor < 0) throw new IllegalArgumentException(String.format("Invalid URL '%s'", url.toString()));
-        int secondSeparator = cursor;
-        String cpkPath = path.substring(0, firstSeparator);
-        fs = cpkFilesystems.computeIfAbsent(Paths.get(cpkPath), new Function<>() {
+    static FileSystem getFileSystem(Path path) {
+        return fileSystemCache.computeIfAbsent(path, new Function<>() {
             @Override
             @SneakyThrows
             public FileSystem apply(Path path) {
                 return FileSystems.newFileSystem(path, CpkURLConnection.class.getClassLoader());
             }
         });
-        jarPath = path.substring(firstSeparator + 1, secondSeparator);
-        className = path.substring(secondSeparator + 1);
     }
 
+    private final Path resourcePath;
+
+    protected CpkURLConnection(URL url) {
+        super(url);
+        CpkURL cpkURL = CpkURL.from(url);
+        FileSystem cpkFs = getFileSystem(Paths.get(cpkURL.cpkFilePath));
+        FileSystem jarFs = getFileSystem(cpkFs.getPath(cpkURL.jarFilePath));
+        resourcePath = jarFs.getPath(cpkURL.resourceName);
+    }
+
+    @Override
+    public void connect() {
+    }
+
+    @Override
     @SneakyThrows
-    private static InputStream getZipEntry(Path zipFile, String entryName) {
-        InputStream is = Files.newInputStream(zipFile);
-        BufferedInputStream bis = new BufferedInputStream(is);
-        ZipInputStream zis = new ZipInputStream(bis);
-        ZipEntry ze;
-        while ((ze = zis.getNextEntry()) != null) {
-            if(Objects.equals(entryName, ze.getName()))
-                return zis;
-        }
-        throw new IllegalArgumentException(String.format("Entry wih name '%s' not found in '%s'", entryName, zipFile.toString()));
-    }
-
-    @Override
-    public void connect() {}
-
-    @Override
     public InputStream getInputStream() {
-        return getZipEntry(fs.getPath(jarPath), className);
+        return Files.newInputStream(resourcePath);
     }
 }
 
@@ -96,6 +84,7 @@ public class CpkStreamHandlerFactory implements URLStreamHandlerFactory {
     }
 
     private final Map<String, URLStreamHandler> protocolMap;
+
     private CpkStreamHandlerFactory() {
         protocolMap = Collections.synchronizedMap(new TreeMap<>());
     }
